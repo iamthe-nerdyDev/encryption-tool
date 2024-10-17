@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Encryption API</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        padding: 20px;
+        background-color: #f4f4f4;
+        border-radius: 8px;
+      }
+      h1 {
+        text-align: center;
+      }
+      form {
+        margin-bottom: 20px;
+      }
+      input,
+      select {
+        padding: 10px;
+        margin: 10px 0;
+        width: 100%;
+        max-width: 400px;
+      }
+      button {
+        padding: 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      .result {
+        background-color: #e7f3fe;
+        border-left: 6px solid #2196f3;
+        padding: 10px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Encryption Tool</h1>
+
+    <form id="generate-key-form">
+      <h2>Generate Key</h2>
+      <select id="algorithm-key" required>
+        <option value="" disabled selected>Select Algorithm</option>
+        <option value="AES">AES</option>
+        <option value="RSA">RSA</option>
+        <option value="3DES">3DES</option>
+      </select>
+      <button type="submit">Generate Key</button>
+    </form>
+    <div id="key-result" class="result"></div>
+
+    <form id="encrypt-form">
+      <h2>Encrypt Data</h2>
+      <select id="algorithm-encrypt" required>
+        <option value="" disabled selected>Select Algorithm</option>
+        <option value="AES">AES</option>
+        <option value="RSA">RSA</option>
+        <option value="3DES">3DES</option>
+      </select>
+      <input
+        type="text"
+        id="data-encrypt"
+        placeholder="Data to encrypt"
+        required
+      />
+      <input
+        type="text"
+        id="key-encrypt"
+        placeholder="Key (for AES/3DES, use Public key if RSA)"
+      />
+      <button type="submit">Encrypt</button>
+    </form>
+    <div id="encrypt-result" class="result"></div>
+
+    <form id="decrypt-form">
+      <h2>Decrypt Data</h2>
+      <select id="algorithm-decrypt" required>
+        <option value="" disabled selected>Select Algorithm</option>
+        <option value="AES">AES</option>
+        <option value="RSA">RSA</option>
+        <option value="3DES">3DES</option>
+      </select>
+      <input
+        type="text"
+        id="data-decrypt"
+        placeholder="Encrypted data"
+        required
+      />
+      <input
+        type="text"
+        id="iv-decrypt"
+        placeholder="IV (for AES/3DES, leave empty if RSA)"
+      />
+      <input
+        type="text"
+        id="key-decrypt"
+        placeholder="Key (for AES/3DES, use Private key if RSA)"
+      />
+      <button type="submit">Decrypt</button>
+    </form>
+    <div id="decrypt-result" class="result"></div>
+
+    <script>
+      const BASE_URL = "http://localhost:3000";
+
+      document
+        .getElementById("generate-key-form")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const algorithm = document.getElementById("algorithm-key").value;
+
+          const response = await fetch(`${BASE_URL}/generate-key`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ algorithm }),
+          });
+
+          const result = await response.json();
+          document.getElementById("key-result").textContent = JSON.stringify(
+            result,
+            null,
+            2
+          );
+        });
+
+      document
+        .getElementById("encrypt-form")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const algorithm = document.getElementById("algorithm-encrypt").value;
+          const data = document.getElementById("data-encrypt").value;
+          const key = document.getElementById("key-encrypt").value || "";
+
+          const response = await fetch(`${BASE_URL}/encrypt`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ algorithm, data, key }),
+          });
+
+          const result = await response.json();
+          document.getElementById("encrypt-result").textContent =
+            JSON.stringify(result, null, 2);
+        });
+
+      document
+        .getElementById("decrypt-form")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const algorithm = document.getElementById("algorithm-decrypt").value;
+          const encryptedData = document.getElementById("data-decrypt").value;
+          const iv = document.getElementById("iv-decrypt").value || "";
+          const key = document.getElementById("key-decrypt").value || "";
+
+          const response = await fetch(`${BASE_URL}/decrypt`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              algorithm,
+              encrypted: encryptedData,
+              iv,
+              key,
+            }),
+          });
+
+          const result = await response.json();
+          document.getElementById("decrypt-result").textContent =
+            JSON.stringify(result, null, 2);
+        });
+    </script>
+  </body>
+</html>
